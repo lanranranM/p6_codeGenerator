@@ -158,7 +158,7 @@ public class P6 {
 		//////////////////////////
 		// TODO: Calling codeGen   //
 		//////////////////////////
-
+		astRoot.codeGen(outFile, 0);
 		return P6.RESULT_CORRECT;
 	}
 
