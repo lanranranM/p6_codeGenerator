@@ -1,8 +1,11 @@
-	.text
-	.globl main
 	.data
 	.align 2
-_a: spce 4
+_a: space 4
+	.data
+	.align 2
+_b: space 4
+	.text
+	.globl main
 main:
 __start:
 	lw    $ra, 0($fp)

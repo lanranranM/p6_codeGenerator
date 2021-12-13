@@ -7,6 +7,7 @@ import java.util.*;
 public class Symb {
     private Type type;
     private int offset;
+    private static boolean global;
     
     public Symb(Type type) {
         this.type = type;
@@ -23,8 +24,14 @@ public class Symb {
     public int getOffset(){
         return offset;
     }
-    public void setOffset(int offset){  //=0 if global, >0 for locals
+    public void setOffset(int offset){  //=0 if global, >0 for locals based on document
         this.offset=offset;
+    }
+    static boolean isGlobal(){
+        return global;
+    }
+    static void setGlobal(boolean a){  //set false when entering a func/struct, set true when exit a func
+        global = a;
     }
     //melody
 }

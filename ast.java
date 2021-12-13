@@ -134,6 +134,10 @@ class ProgramNode extends ASTnode {
      * program.
      */
     public void nameAnalysis() {
+        // set all var in this root level as gloabl at first - melody
+        // func will change it later
+        Symb.setGlobal(true);
+        // melody
         SymTable symTab = new SymTable();
         myDeclList.nameAnalysis(symTab);
         Symb tmp = symTab.lookupLocal("main");
@@ -158,8 +162,6 @@ class ProgramNode extends ASTnode {
     }
 
     public void codeGen() {
-        Codegen.generate(".text");
-        Codegen.generate(".globl main");
         myDeclList.codeGen();
     }
 
@@ -186,9 +188,16 @@ class DeclListNode extends ASTnode {
      * the list.
      */
     public void nameAnalysis(SymTable symTab, SymTable globalTab) {
+        //melody
+        int currOffset = 0;
         for (DeclNode node : myDecls) {
             if (node instanceof VarDeclNode) {
                 ((VarDeclNode) node).nameAnalysis(symTab, globalTab);
+                if (!Symb.isGlobal()){
+                    Symb currentSym = ((VarDeclNode) node).getSym();
+                    currentSym.setOffset(currOffset);
+                    currOffset-=4;
+                }
             } else {
                 node.nameAnalysis(symTab);
             }
@@ -219,7 +228,10 @@ class DeclListNode extends ASTnode {
     public void codeGen() {
         Iterator it = myDecls.iterator();
         while (it.hasNext()) {
-            ((DeclNode) it.next()).codeGen();
+            DeclNode curr = (DeclNode) it.next();
+            if(curr instanceof VarDeclNode || curr instanceof FnDeclNode){
+                curr.codeGen();
+            }
         }
     }
 
@@ -416,6 +428,11 @@ class VarDeclNode extends DeclNode {
         myId = id;
         mySize = size;
     }
+    //melody
+    public Symb getSym(){
+        return myId.sym();
+    }
+    //
 
     /**
      * nameAnalysis (overloaded) Given a symbol table symTab, do: if this name is
@@ -498,7 +515,7 @@ class VarDeclNode extends DeclNode {
     public void codeGen(){
         //for global var
         if(NOT_STRUCT==-1){
-            if(myId!=null){
+            if(myId!=null && Symb.isGlobal()){
                 Codegen.generate(".data");
                 String tmp = "_"+myId.name()+": "+"space 4";
                 Codegen.generate(".align 2"+"\n"+tmp);
@@ -596,9 +613,15 @@ class FnDeclNode extends DeclNode {
 
     public void codeGen() {
         boolean isMain = myId.name().equals("main");
-        Codegen.genLabel(myId.name());
-        if (isMain)
+        if (isMain){
+            Codegen.generate(".text");
+            Codegen.generate(".globl main");
+            Codegen.genLabel(myId.name());
             Codegen.genLabel("__start");
+        }else{
+            Codegen.generate(".text");
+            Codegen.genLabel(myId.name());
+        }
 
         Codegen.generateIndexed("lw", Codegen.RA, Codegen.FP, 0);
         Codegen.generate("move", Codegen.T0, Codegen.FP);

@@ -7,7 +7,11 @@ public class SymTable {
         list = new LinkedList<HashMap<String, Symb>>();
         list.add(new HashMap<String, Symb>());
     }
-    
+    //melody
+    public List<HashMap<String,Symb>> getTable(){
+        return list;
+    }
+    //melody
     public void addDecl(String name, Symb sym) 
 	throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
 	if (name == null && sym == null) {
