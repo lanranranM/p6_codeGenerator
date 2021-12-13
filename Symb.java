@@ -24,7 +24,7 @@ public class Symb {
     public int getOffset(){
         return offset;
     }
-    public void setOffset(int offset){  //=0 if global, >0 for locals based on document
+    public void setOffset(int offset){  //>0 if global, <=0 for locals based on document
         this.offset=offset;
     }
     static boolean isGlobal(){
