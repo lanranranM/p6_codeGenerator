@@ -6,6 +6,7 @@ import java.util.*;
  */
 public class Symb {
     private Type type;
+    private int offset;
     
     public Symb(Type type) {
         this.type = type;
@@ -18,6 +19,14 @@ public class Symb {
     public String toString() {
         return type.toString();
     }
+    //melody
+    public int getOffset(){
+        return offset;
+    }
+    public void setOffset(int offset){  //=0 if global, >0 for locals
+        this.offset=offset;
+    }
+    //melody
 }
 
 /**
@@ -30,6 +39,8 @@ class FnSymb extends Symb {
     private Type returnType;
     private int numParams;
     private List<Type> paramTypes;
+    private int paraOffset;
+    private int localVarOffset;
     
     public FnSymb(Type type, int numparams) {
         super(new FnType());
@@ -68,6 +79,20 @@ class FnSymb extends Symb {
         str += "->" + returnType.toString();
         return str;
     }
+    //melody
+    public int getParaOffset(){
+        return paraOffset;
+    }
+    public void setParaOffset(int offset){
+        this.paraOffset=offset;
+    }
+    public int getlocalVarOffset(){
+        return localVarOffset;
+    }
+    public void setlocalVarOffset(int offset){
+        this.localVarOffset=offset;
+    }
+    //
 }
 
 /**

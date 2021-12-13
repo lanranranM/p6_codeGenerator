@@ -494,6 +494,19 @@ class VarDeclNode extends DeclNode {
         p.println(";");
     }
 
+    //melody
+    public void codeGen(){
+        //for global var
+        if(NOT_STRUCT==-1){
+            if(myId!=null){
+                Codegen.generate(".data");
+                String tmp = "_"+myId.name()+": "+"space 4";
+                Codegen.generate(".align 2"+"\n"+tmp);
+            }
+        }
+
+    }
+    //melody
     // 3 kids
     private TypeNode myType;
     private IdNode myId;
