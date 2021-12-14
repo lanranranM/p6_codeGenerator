@@ -1,4 +1,6 @@
 int main() {
+    print << (1+1-1)*2/2+5;
+    print << (1<=2) && (3>2);
     int a;
     int b;
     int a1;
