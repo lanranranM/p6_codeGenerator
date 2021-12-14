@@ -313,7 +313,7 @@ class FnBodyNode extends ASTnode {
         myStmtList.unparse(p, indent);
     }
 
-    public void CodeGen(){
+    public void codeGen(){
         myStmtList.codeGen();
     }
 
@@ -361,7 +361,7 @@ class StmtListNode extends ASTnode {
     // melody
     public void codeGen() {
         for (StmtNode node : myStmts) {
-            ((StmtNode) node).codeGen();
+            node.codeGen();
         }
     }
 
@@ -971,10 +971,6 @@ class PreIncStmtNode extends StmtNode {
         p.println("++");
         myExp.unparse(p, 0);
     }
-    //melody
-    public void codeGen(){
-        //todo
-    }
     // 1 kid
     private ExpNode myExp;
 }
@@ -1014,10 +1010,7 @@ class PreDecStmtNode extends StmtNode {
         p.println("--");
         myExp.unparse(p, 0);
     }
-    //melody
-    public void codeGen(){
-        //todo
-    }
+
     // 1 kid
     private ExpNode myExp;
 }
@@ -1133,10 +1126,10 @@ class PrintStmtNode extends StmtNode {
 
     //melody
     public void codeGen(){
-        Type type = myExp.typeCheck()myExp.typeCheck();
+        Type type = myExp.typeCheck();
         int offsetV0=1;
         if(type.isStringType()){
-            offsetV0 = 4
+            offsetV0 = 4;
         }
         myExp.codeGen(); //TODO
         Codegen.genPop(Codegen.A0);
@@ -1150,11 +1143,7 @@ class PrintStmtNode extends StmtNode {
 }
 
 class IfStmtNode extends StmtNode {
-    @Override
-    public void codeGen() {
-        // TODO Auto-generated method stub
-
-    }
+    
 
     public IfStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
         myDeclList = dlist;
@@ -1204,14 +1193,13 @@ class IfStmtNode extends StmtNode {
     }
     //melody
     public void codeGen(){
+        Codegen.generateWithComment("", "in if");
         myExp.codeGen();// need to return the evulation result
-        String _true = Codegen.nextLabel();
         String _false = Codegen.nextLabel();
         Codegen.genPop(Codegen.T0);
-        Codegen.generate("li", Codegen.T1, 0);
+        Codegen.generate("li", Codegen.T1, Codegen.FALSE);
         Codegen.generate("beq", Codegen.T0 , Codegen.T1, _false);
-        Codegen.genLabel(_true);
-        myStmtList.CodeGen();
+        myStmtList.codeGen();
         Codegen.genLabel(_false);
     }
     //
@@ -1222,11 +1210,7 @@ class IfStmtNode extends StmtNode {
 }
 
 class IfElseStmtNode extends StmtNode {
-    @Override
-    public void codeGen() {
-        // TODO Auto-generated method stub
 
-    }
 
     public IfElseStmtNode(ExpNode exp, DeclListNode dlist1, StmtListNode slist1, DeclListNode dlist2,
             StmtListNode slist2) {
@@ -1294,7 +1278,22 @@ class IfElseStmtNode extends StmtNode {
         addIndent(p, indent);
         p.println("}");
     }
-
+    //melody
+    public void codeGen(){
+        Codegen.generateWithComment("", "in if else");
+        myExp.codeGen();// need to return the evulation result
+        String _false = Codegen.nextLabel();
+        String _outside = Codegen.nextLabel();
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("li", Codegen.T1, Codegen.FALSE);
+        Codegen.generate("beq", Codegen.T0 , Codegen.T1, _false);
+        myThenStmtList.codeGen();
+        Codegen.generate("b",_outside);
+        Codegen.genLabel(_false);
+        myElseStmtList.codeGen();
+        Codegen.genLabel(_outside);
+    }
+    //
     // 5 kids
     private ExpNode myExp;
     private DeclListNode myThenDeclList;
@@ -1664,8 +1663,9 @@ class TrueNode extends ExpNode {
     public void unparse(PrintWriter p, int indent) {
         p.print("tru");
     }
-
+    //melody
     public void codeGen() {
+        Codegen.generate("li",Codegen.T0,Codegen.TRUE);
     }
 
     private int myLineNum;
@@ -1703,8 +1703,9 @@ class FalseNode extends ExpNode {
         p.print("fls");
     }
 
+    //melody
     public void codeGen() {
-
+        Codegen.generate("li",Codegen.T0,Codegen.FALSE);
     }
 
     private int myLineNum;
@@ -2525,8 +2526,8 @@ class EqualsNode extends EqualityExpNode {
         myExp1.codeGen();
         myExp2.codeGen();
 
-        Codegen.genPop(T1);
-        Codegen.genPop(T0);
+        Codegen.genPop(Codegen.T1);
+        Codegen.genPop(Codegen.T0);
 
         Codegen.generate("and", Codegen.T0, Codegen.T0, Codegen.T1);
         Codegen.genPush(Codegen.T0);
