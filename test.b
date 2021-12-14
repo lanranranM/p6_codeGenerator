@@ -16,8 +16,9 @@ int main() {
         print << c;
         print << "true";
     }
-    while(1==1){
+    while(a==15){
         print << "in loop";
+        a=16;
     }
     receive >> a;
     print << "Hello";
