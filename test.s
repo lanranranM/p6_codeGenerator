@@ -142,6 +142,38 @@ __start:
 	li    $v0, 4
 	syscall
 .L3:
+.L6:
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	and   $t0, $t0, $t1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 0
+	beq   $t1, $t0, .L7
+	.data
+.L8:
+	.asciiz "in loop"
+	.text
+	la    $t0, .L8
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	b     .L6
+.L7:
 	li    $v0, 5
 	syscall
 	la    $t0, 0($fp)
@@ -151,10 +183,10 @@ __start:
 	addu  $sp, $sp, 4
 	sw    $v0, 0($t0)
 	.data
-.L6:
+.L9:
 	.asciiz "Hello"
 	.text
-	la    $t0, .L6
+	la    $t0, .L9
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -186,7 +218,7 @@ test:		# enter func
 	addu  $fp, $sp, 8
 			#Push space for the locals
 	subu  $sp, $sp, 4
-.L7:
+.L10:
 	lw    $ra, 0($fp)
 	move  $t0, $fp
 	lw    $fp, -4($fp)

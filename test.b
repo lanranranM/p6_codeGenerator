@@ -16,6 +16,9 @@ int main() {
         print << c;
         print << "true";
     }
+    while(1==1){
+        print << "in loop";
+    }
     receive >> a;
     print << "Hello";
     print << a;

@@ -1303,10 +1303,25 @@ class IfElseStmtNode extends StmtNode {
 }
 
 class WhileStmtNode extends StmtNode {
-    @Override
+    //melody
     public void codeGen() {
-        // TODO Auto-generated method stub
-
+        //LoopLabel:
+        String loopLabel = Codegen.nextLabel();
+        String doneLabel = Codegen.nextLabel();
+        Codegen.genLabel(loopLabel);
+        //Evaluate the condition, leaving the value on the stack.
+        myExp.codeGen();
+        //Pop the top-of-stack value and see if it's zero; if zero, jump to DoneLab
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("li",Codegen.T1,Codegen.FALSE);
+        Codegen.generate("beq",Codegen.T1,Codegen.T0,doneLabel);
+        //Code for the statements in the body of the loop.
+        myStmtList.codeGen();
+        //Jump to LoopLabel
+        Codegen.generate("b",loopLabel);
+        //DoneLabel:
+        Codegen.genLabel(doneLabel);
+        
     }
 
     public WhileStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
