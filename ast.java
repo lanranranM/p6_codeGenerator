@@ -172,6 +172,7 @@ class ProgramNode extends ASTnode {
 class DeclListNode extends ASTnode {
     public DeclListNode(List<DeclNode> S) {
         myDecls = S;
+        localSize = 0;
     }
 
     /**
@@ -196,27 +197,16 @@ class DeclListNode extends ASTnode {
             } else {
                 currSym = node.nameAnalysis(symTab);
             }
-            if(currSym!=null){
-                if (Symb.isGlobal()){ //global
+            if (currSym != null) {
+                if (Symb.isGlobal()) { // global
                     currSym.setOffset(1);
-                }else{
+                } else {
                     currSym.setOffset(localOffset);
-                    localOffset-=4;
+                    localOffset -= 4;
+                    this.localSize += 4;
                 }
-                // System.out.println(currSym.toString()+": "+currSym.getOffset());
-                // if(!currSym.isGlobal())
-                //     System.out.println("is in func!");
             }
-            // if(currSym!=null)
-            //     System.out.println("currSym "+currSym.toString());
-            //     if(!currSym.isGlobal())
-            //         System.out.println("is in func!");
-            // if(symTab!=null)
-            //     symTab.print();
-            // if(globalTab!=null)
-            //     globalTab.print();
         }
-        
     }
 
     /**
@@ -244,7 +234,7 @@ class DeclListNode extends ASTnode {
         Iterator it = myDecls.iterator();
         while (it.hasNext()) {
             DeclNode curr = (DeclNode) it.next();
-            if(curr instanceof VarDeclNode || curr instanceof FnDeclNode){
+            if (curr instanceof VarDeclNode || curr instanceof FnDeclNode) {
                 curr.codeGen();
             }
         }
@@ -252,6 +242,7 @@ class DeclListNode extends ASTnode {
 
     // list of kids (DeclNodes)
     private List<DeclNode> myDecls;
+    public int localSize;
 }
 
 class FormalsListNode extends ASTnode {
@@ -323,11 +314,17 @@ class FnBodyNode extends ASTnode {
         myDeclList.unparse(p, indent);
         myStmtList.unparse(p, indent);
     }
-    //melody
-    public void CodeGen(){
+
+    // melody
+    public void CodeGen() {
         myDeclList.codeGen();
     }
-    //melody
+
+    public int getLocalSize() {
+        return myDeclList.localSize;
+    }
+
+    // melody
     // 2 kids
     private DeclListNode myDeclList;
     private StmtListNode myStmtList;
@@ -362,13 +359,15 @@ class StmtListNode extends ASTnode {
             it.next().unparse(p, indent);
         }
     }
-    //melody
-    public void CodeGen(){
-        for(StmtNode node : myStmts){
-            //node.codeGen();
+
+    // melody
+    public void CodeGen() {
+        for (StmtNode node : myStmts) {
+            // node.codeGen();
         }
     }
-    //melody
+
+    // melody
     // list of kids (StmtNodes)
     private List<StmtNode> myStmts;
 }
@@ -453,8 +452,9 @@ class VarDeclNode extends DeclNode {
         myId = id;
         mySize = size;
     }
-    //melody
-    public Symb getSym(){
+
+    // melody
+    public Symb getSym() {
         return myId.sym();
     }
     //
@@ -536,19 +536,20 @@ class VarDeclNode extends DeclNode {
         p.println(";");
     }
 
-    //melody
-    public void codeGen(){
-        //for global var
-        if(NOT_STRUCT==-1){
-            if(myId!=null && Symb.isGlobal()){
+    // melody
+    public void codeGen() {
+        // for global var
+        if (NOT_STRUCT == -1) {
+            if (myId != null && Symb.isGlobal()) {
                 Codegen.generate(".data");
-                String tmp = "_"+myId.name()+": "+"space 4";
-                Codegen.generate(".align 2"+"\n"+tmp);
+                String tmp = "_" + myId.name() + ": " + "space 4";
+                Codegen.generate(".align 2" + "\n" + tmp);
             }
         }
 
     }
-    //melody
+
+    // melody
     // 3 kids
     private TypeNode myType;
     private IdNode myId;
@@ -607,6 +608,7 @@ class FnDeclNode extends DeclNode {
         }
 
         myBody.nameAnalysis(symTab); // process the function body
+        sym.setLocalSize(myBody.getLocalSize());
 
         try {
             symTab.removeScope(); // exit scope
@@ -640,27 +642,29 @@ class FnDeclNode extends DeclNode {
     public void codeGen() {
         boolean isMain = myId.name().equals("main");
         // preamble
-        if (isMain){
+        if (isMain) {
             Codegen.generate(".text");
             Codegen.generate(".globl main");
-            Codegen.genLabel(myId.name(),"enter func");
+            Codegen.genLabel(myId.name(), "enter func");
             Codegen.genLabel("__start");
-        }else{
+        } else {
             Codegen.generate(".text");
-            Codegen.genLabel(myId.name(),"enter func");
+            Codegen.genLabel(myId.name(), "enter func");
         }
         // entry
-        Codegen.generateIndexed("sw", Codegen.RA, Codegen.FP, 0);
-        Codegen.generate("subu", Codegen.T0, Codegen.FP,4);
-        Codegen.generateIndexed("sw", Codegen.FP, Codegen.FP, 0);
-        Codegen.generate("subu", Codegen.SP, Codegen.T0,4);
-        Codegen.generate("addu", Codegen.FP, Codegen.SP,8);
+        Codegen.generateIndexed("sw", Codegen.RA, Codegen.SP, 0);
+        Codegen.generate("subu", Codegen.SP, Codegen.SP, 4);
+        Codegen.generateIndexed("sw", Codegen.FP, Codegen.SP, 0);
+        Codegen.generate("subu", Codegen.SP, Codegen.SP, 4);
+        Codegen.generate("addu", Codegen.FP, Codegen.SP, 8);
         Codegen.generateWithComment("", "Push space for the locals");
-        Codegen.generate("subu", Codegen.SP, Codegen.SP,((FnSymb)myId.sym()).getlocalVarOffset());
+        Codegen.generate("subu", Codegen.SP, Codegen.SP, ((FnSymb) myId.sym()).getLocalSize());
+
         // body
-        //myBody.codeGen();
+        // myBody.codeGen();
+
         // exit
-        if(isMain)
+        if (isMain)
             Codegen.genLabel("_main_Exit");
         else
             Codegen.genLabel(Codegen.nextLabel());
