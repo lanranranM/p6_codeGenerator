@@ -10,6 +10,8 @@ __start:
 			#Push space for the locals
 	subu  $sp, $sp, 16
 	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
 	la    $t0, -12($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
@@ -23,6 +25,8 @@ __start:
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
 	la    $t0, -8($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
@@ -143,10 +147,10 @@ __start:
 	syscall
 .L3:
 .L6:
-	li    $t0, 1
+	lw    $t0, 0($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	li    $t0, 1
+	li    $t0, 15
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $t1, 4($sp)	#POP
@@ -172,6 +176,21 @@ __start:
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
+	li    $t0, 16
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, 0($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t1, 0($t0)	#Assign
+	sw    $t1, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
 	b     .L6
 .L7:
 	li    $v0, 5

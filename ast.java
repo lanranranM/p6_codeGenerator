@@ -1680,7 +1680,8 @@ class TrueNode extends ExpNode {
     }
     //melody
     public void codeGen() {
-        Codegen.generate("li",Codegen.T0,Codegen.TRUE);
+        Codegen.generate("li", Codegen.T0, Codegen.TRUE);
+        Codegen.genPush(Codegen.T0);
     }
 
     private int myLineNum;
@@ -1720,7 +1721,8 @@ class FalseNode extends ExpNode {
 
     //melody
     public void codeGen() {
-        Codegen.generate("li",Codegen.T0,Codegen.FALSE);
+        Codegen.generate("li", Codegen.T0, Codegen.FALSE);
+        Codegen.genPush(Codegen.T0);
     }
 
     private int myLineNum;
