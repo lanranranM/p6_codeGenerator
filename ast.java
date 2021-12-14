@@ -1156,7 +1156,19 @@ class IfStmtNode extends StmtNode {
         addIndent(p, indent);
         p.println("}");
     }
-
+    //melody
+    public void codeGen(){
+        myExp.codeGen();// need to return the evulation result
+        String _true = Codegen.nextLabel();
+        String _false = Codegen.nextLabel();
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("li", Codegen.T1, 0);
+        Codegen.generate("beq", Codegen.T0 , Codegen.T1, _false);
+        Codegen.genLabel(_true);
+        myStmtList.CodeGen();
+        Codegen.genLabel(_false);
+    }
+    //
     // e kids
     private ExpNode myExp;
     private DeclListNode myDeclList;
