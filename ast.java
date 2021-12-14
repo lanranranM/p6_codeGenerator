@@ -325,7 +325,7 @@ class FnBodyNode extends ASTnode {
     }
     //melody
     public void CodeGen(){
-        myDeclList.codeGen();
+        myStmtList.codeGen();
     }
     //melody
     // 2 kids
@@ -365,7 +365,7 @@ class StmtListNode extends ASTnode {
     //melody
     public void CodeGen(){
         for(StmtNode node : myStmts){
-            //node.codeGen();
+            node.codeGen();
         }
     }
     //melody
@@ -658,7 +658,7 @@ class FnDeclNode extends DeclNode {
         Codegen.generateWithComment("", "Push space for the locals");
         Codegen.generate("subu", Codegen.SP, Codegen.SP,((FnSymb)myId.sym()).getlocalVarOffset());
         // body
-        //myBody.codeGen();
+        myBody.codeGen();
         // exit
         if(isMain)
             Codegen.genLabel("_main_Exit");
@@ -894,6 +894,7 @@ abstract class StmtNode extends ASTnode {
     abstract public void nameAnalysis(SymTable symTab);
 
     abstract public void typeCheck(Type retType);
+    abstract public void codeGen();
 }
 
 class AssignStmtNode extends StmtNode {
@@ -921,7 +922,10 @@ class AssignStmtNode extends StmtNode {
         myAssign.unparse(p, -1); // no parentheses
         p.println(";");
     }
-
+    //melody
+    public void codeGen(){
+        //todo
+    }
     // 1 kid
     private AssignNode myAssign;
 }
@@ -955,7 +959,10 @@ class PreIncStmtNode extends StmtNode {
         p.println("++");
         myExp.unparse(p, 0);
     }
-
+    //melody
+    public void codeGen(){
+        //todo
+    }
     // 1 kid
     private ExpNode myExp;
 }
@@ -989,7 +996,10 @@ class PreDecStmtNode extends StmtNode {
         p.println("--");
         myExp.unparse(p, 0);
     }
-
+    //melody
+    public void codeGen(){
+        //todo
+    }
     // 1 kid
     private ExpNode myExp;
 }
@@ -1032,7 +1042,10 @@ class ReceiveStmtNode extends StmtNode {
         myExp.unparse(p, 0);
         p.println(";");
     }
-
+    //melody
+    public void codeGen(){
+        //todo
+    }
     // 1 kid (actually can only be an IdNode or an ArrayExpNode)
     private ExpNode myExp;
 }
@@ -1079,7 +1092,19 @@ class PrintStmtNode extends StmtNode {
         myExp.unparse(p, 0);
         p.println(";");
     }
-
+    //melody
+    public void codeGen(){
+        Type type = myExp.typeCheck()myExp.typeCheck();
+        int offsetV0=1;
+        if(type.isStringType()){
+            offsetV0 = 4
+        }
+        myExp.codeGen(); //TODO
+        Codegen.genPop(Codegen.A0);
+        Codegen.generate("addu", Codegen.SP, Codegen.SP,4);
+        Codegen.generate("li", Codegen.V0, offsetV0);
+        Codegen.generate("syscall");
+    }
     // 1 kid
     private ExpNode myExp;
 }
