@@ -7,10 +7,14 @@ import java.util.*;
 public class Symb {
     private Type type;
     private int offset;
-    public static boolean global = true;
+    private int localSize;
+    private boolean global;
+    public static boolean statusGlobal = true;
 
     public Symb(Type type) {
         this.type = type;
+        this.global = statusGlobal;
+        this.localSize = 0;
     }
 
     public Type getType() {
@@ -30,12 +34,24 @@ public class Symb {
         this.offset = offset;
     }
 
-    static boolean isGlobal() {
-        return global;
+    public int getLocalSize() {
+        return localSize;
     }
 
-    static void setGlobal(boolean a) { // set false when entering a func/struct, set true when exit a func
-        global = a;
+    public void setLocalSize(int size) {
+        this.localSize = size;
+    }
+
+    static boolean isStatusGlobal() {
+        return statusGlobal;
+    }
+
+    static void setStatusGlobal(boolean a) { // set false when entering a func/struct, set true when exit a func
+        statusGlobal = a;
+    }
+
+    public boolean isGlobal() {
+        return this.global;
     }
     // melody
 }
@@ -52,13 +68,12 @@ class FnSymb extends Symb {
     private List<Type> paramTypes;
     private int paraOffset;
     private int localVarOffset;
-    private int localSize;
 
     public FnSymb(Type type, int numparams) {
         super(new FnType());
         returnType = type;
         numParams = numparams;
-        global = false;
+        statusGlobal = false;
     }
 
     public void addFormals(List<Type> L) {
@@ -108,14 +123,6 @@ class FnSymb extends Symb {
 
     public void setlocalVarOffset(int offset) {
         this.localVarOffset = offset;
-    }
-
-    public int getLocalSize() {
-        return localSize;
-    }
-
-    public void setLocalSize(int size) {
-        this.localSize = size;
     }
     //
 }

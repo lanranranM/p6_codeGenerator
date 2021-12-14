@@ -6,7 +6,7 @@ import java.util.*;
 // represents a b program.
 //
 // Internal nodes of the tree contain pointers to children, organized
-// either in a list (for nodes that may have a variable number of 
+// either in a list (for nodes that may have a variable number of
 // children) or as a fixed set of fields.
 //
 // The nodes for literals and ids contain line and character number
@@ -66,7 +66,7 @@ import java.util.*;
 //         UnaryMinusNode
 //         NotNode
 //       BinaryExpNode       ExpNode ExpNode
-//         PlusNode     
+//         PlusNode
 //         MinusNode
 //         TimesNode
 //         DivideNode
@@ -93,7 +93,7 @@ import java.util.*;
 // (3) Internal nodes with fixed numbers of kids:
 //        ProgramNode,     VarDeclNode,     FnDeclNode,     FormalDeclNode,
 //        StructDeclNode,  FnBodyNode,      StructNode,     AssignStmtNode,
-//        PreIncStmtNode, PreDecStmtNode, ReceiveStmtNode,   PrintStmtNode   
+//        PreIncStmtNode, PreDecStmtNode, ReceiveStmtNode,   PrintStmtNode
 //        IfStmtNode,      IfElseStmtNode,  WhileStmtNode,  CallStmtNode
 //        ReturnStmtNode,  DotAccessNode,   AssignExpNode,  CallExpNode,
 //        UnaryExpNode,    BinaryExpNode,   UnaryMinusNode, NotNode,
@@ -136,7 +136,7 @@ class ProgramNode extends ASTnode {
     public void nameAnalysis() {
         // set all var in this root level as gloabl at first - melody
         // func will change it later
-        Symb.setGlobal(true);
+        Symb.setStatusGlobal(true);
         // melody
         SymTable symTab = new SymTable();
         myDeclList.nameAnalysis(symTab);
@@ -198,7 +198,7 @@ class DeclListNode extends ASTnode {
                 currSym = node.nameAnalysis(symTab);
             }
             if (currSym != null) {
-                if (Symb.isGlobal()) { // global
+                if (Symb.isStatusGlobal()) { // global
                     currSym.setOffset(1);
                 } else {
                     currSym.setOffset(localOffset);
@@ -234,9 +234,7 @@ class DeclListNode extends ASTnode {
         Iterator it = myDecls.iterator();
         while (it.hasNext()) {
             DeclNode curr = (DeclNode) it.next();
-            if (curr instanceof VarDeclNode || curr instanceof FnDeclNode) {
-                curr.codeGen();
-            }
+            curr.codeGen();
         }
     }
 
@@ -316,8 +314,9 @@ class FnBodyNode extends ASTnode {
     }
 
     // melody
-    public void CodeGen() {
+    public void codeGen() {
         myDeclList.codeGen();
+        myStmtList.codeGen();
     }
 
     public int getLocalSize() {
@@ -361,9 +360,9 @@ class StmtListNode extends ASTnode {
     }
 
     // melody
-    public void CodeGen() {
+    public void codeGen() {
         for (StmtNode node : myStmts) {
-            // node.codeGen();
+            ((StmtNode) node).codeGen();
         }
     }
 
@@ -525,6 +524,7 @@ class VarDeclNode extends DeclNode {
             }
         }
 
+        mySymb = sym;
         return sym;
     }
 
@@ -540,7 +540,7 @@ class VarDeclNode extends DeclNode {
     public void codeGen() {
         // for global var
         if (NOT_STRUCT == -1) {
-            if (myId != null && Symb.isGlobal()) {
+            if (myId != null && mySymb.isGlobal()) {
                 Codegen.generate(".data");
                 String tmp = "_" + myId.name() + ": " + "space 4";
                 Codegen.generate(".align 2" + "\n" + tmp);
@@ -553,6 +553,7 @@ class VarDeclNode extends DeclNode {
     // 3 kids
     private TypeNode myType;
     private IdNode myId;
+    private Symb mySymb;
     private int mySize; // use value NOT_STRUCT if this is not a struct type
 
     public static int NOT_STRUCT = -1;
@@ -582,7 +583,7 @@ class FnDeclNode extends DeclNode {
         }
 
         else { // add function name to local symbol table
-            Symb.setGlobal(false);
+            Symb.setStatusGlobal(false);
             try {
                 sym = new FnSymb(myType.type(), myFormalsList.length());
                 symTab.addDecl(name, sym);
@@ -616,7 +617,7 @@ class FnDeclNode extends DeclNode {
             System.err.println("Unexpected EmptySymTableException " + " in FnDeclNode.nameAnalysis");
             System.exit(-1);
         }
-        Symb.setGlobal(true);
+        Symb.setStatusGlobal(true);
         return null;
     }
 
@@ -661,7 +662,7 @@ class FnDeclNode extends DeclNode {
         Codegen.generate("subu", Codegen.SP, Codegen.SP, ((FnSymb) myId.sym()).getLocalSize());
 
         // body
-        // myBody.codeGen();
+        myBody.codeGen();
 
         // exit
         if (isMain)
@@ -898,6 +899,8 @@ abstract class StmtNode extends ASTnode {
     abstract public void nameAnalysis(SymTable symTab);
 
     abstract public void typeCheck(Type retType);
+
+    abstract public void codeGen();
 }
 
 class AssignStmtNode extends StmtNode {
@@ -926,11 +929,22 @@ class AssignStmtNode extends StmtNode {
         p.println(";");
     }
 
+    public void codeGen() {
+        myAssign.codeGen();
+        Codegen.genPop(Codegen.T0);
+    }
+
     // 1 kid
     private AssignNode myAssign;
 }
 
 class PreIncStmtNode extends StmtNode {
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
+    }
+
     public PreIncStmtNode(ExpNode exp) {
         myExp = exp;
     }
@@ -965,6 +979,12 @@ class PreIncStmtNode extends StmtNode {
 }
 
 class PreDecStmtNode extends StmtNode {
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
+    }
+
     public PreDecStmtNode(ExpNode exp) {
         myExp = exp;
     }
@@ -999,6 +1019,7 @@ class PreDecStmtNode extends StmtNode {
 }
 
 class ReceiveStmtNode extends StmtNode {
+
     public ReceiveStmtNode(ExpNode e) {
         myExp = e;
     }
@@ -1035,6 +1056,14 @@ class ReceiveStmtNode extends StmtNode {
         p.print("receive >> ");
         myExp.unparse(p, 0);
         p.println(";");
+    }
+
+    public void codeGen() {
+        Codegen.generate("li", Codegen.V0, "5");
+        Codegen.generate("syscall");
+        ((IdNode) myExp).genAddr();
+        Codegen.genPop(Codegen.T0);
+        Codegen.generateIndexed("sw", Codegen.V0, Codegen.T0, 0);
     }
 
     // 1 kid (actually can only be an IdNode or an ArrayExpNode)
@@ -1084,11 +1113,29 @@ class PrintStmtNode extends StmtNode {
         p.println(";");
     }
 
+    public void codeGen() {
+        myExp.codeGen();
+        Codegen.genPop(Codegen.A0);
+
+        Type type = myExp.typeCheck();
+        if (type.isIntType())
+            Codegen.generate("li", Codegen.V0, 1);
+        else
+            Codegen.generate("li", Codegen.V0, 4);
+        Codegen.generate("syscall");
+    }
+
     // 1 kid
     private ExpNode myExp;
 }
 
 class IfStmtNode extends StmtNode {
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
+    }
+
     public IfStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
         myDeclList = dlist;
         myExp = exp;
@@ -1143,6 +1190,12 @@ class IfStmtNode extends StmtNode {
 }
 
 class IfElseStmtNode extends StmtNode {
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
+    }
+
     public IfElseStmtNode(ExpNode exp, DeclListNode dlist1, StmtListNode slist1, DeclListNode dlist2,
             StmtListNode slist2) {
         myExp = exp;
@@ -1219,6 +1272,12 @@ class IfElseStmtNode extends StmtNode {
 }
 
 class WhileStmtNode extends StmtNode {
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
+    }
+
     public WhileStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
         myExp = exp;
         myDeclList = dlist;
@@ -1273,6 +1332,12 @@ class WhileStmtNode extends StmtNode {
 }
 
 class RepeatStmtNode extends StmtNode {
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
+    }
+
     public RepeatStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
         myExp = exp;
         myDeclList = dlist;
@@ -1327,6 +1392,12 @@ class RepeatStmtNode extends StmtNode {
 }
 
 class CallStmtNode extends StmtNode {
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
+    }
+
     public CallStmtNode(CallExpNode call) {
         myCall = call;
     }
@@ -1359,6 +1430,12 @@ class CallStmtNode extends StmtNode {
 class ReturnStmtNode extends StmtNode {
     public ReturnStmtNode(ExpNode exp) {
         myExp = exp;
+    }
+
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -1425,6 +1502,8 @@ abstract class ExpNode extends ASTnode {
     abstract public int lineNum();
 
     abstract public int charNum();
+
+    abstract public void codeGen();
 }
 
 class IntLitNode extends ExpNode {
@@ -1457,6 +1536,11 @@ class IntLitNode extends ExpNode {
 
     public void unparse(PrintWriter p, int indent) {
         p.print(myIntVal);
+    }
+
+    public void codeGen() {
+        Codegen.generate("li", Codegen.T0, String.valueOf(myIntVal));
+        Codegen.genPush(Codegen.T0);
     }
 
     private int myLineNum;
@@ -1496,9 +1580,26 @@ class StringLitNode extends ExpNode {
         p.print(myStrVal);
     }
 
+    public void codeGen() {
+        String label = "";
+        if (!cache.containsKey(myStrVal)) {
+            label = Codegen.nextLabel();
+            Codegen.generate(".data");
+            Codegen.genLabel(label);
+            Codegen.generate(".asciiz " + myStrVal);
+        } else {
+            label = cache.get(myStrVal);
+        }
+
+        Codegen.generate(".text");
+        Codegen.generate("la", Codegen.T0, label);
+        Codegen.genPush(Codegen.T0);
+    }
+
     private int myLineNum;
     private int myCharNum;
     private String myStrVal;
+    private static HashMap<String, String> cache = new HashMap();
 }
 
 class TrueNode extends ExpNode {
@@ -1530,6 +1631,9 @@ class TrueNode extends ExpNode {
 
     public void unparse(PrintWriter p, int indent) {
         p.print("tru");
+    }
+
+    public void codeGen() {
     }
 
     private int myLineNum;
@@ -1565,6 +1669,10 @@ class FalseNode extends ExpNode {
 
     public void unparse(PrintWriter p, int indent) {
         p.print("fls");
+    }
+
+    public void codeGen() {
+
     }
 
     private int myLineNum;
@@ -1646,6 +1754,24 @@ class IdNode extends ExpNode {
         }
     }
 
+    public void codeGen() {
+        if (mySymb.isGlobal()) {
+            Codegen.generate("lw", Codegen.T0, "_" + myStrVal);
+        } else {
+            Codegen.generateIndexed("lw", Codegen.T0, Codegen.FP, mySymb.getOffset());
+        }
+        Codegen.genPush(Codegen.T0);
+    }
+
+    public void genAddr() {
+        if (mySymb.isGlobal()) {
+            Codegen.generate("la", Codegen.T0, "_" + myStrVal);
+        } else {
+            Codegen.generateIndexed("la", Codegen.T0, Codegen.FP, mySymb.getOffset());
+        }
+        Codegen.genPush(Codegen.T0);
+    }
+
     private int myLineNum;
     private int myCharNum;
     private String myStrVal;
@@ -1664,6 +1790,12 @@ class DotAccessExpNode extends ExpNode {
      */
     public Symb sym() {
         return mySymb;
+    }
+
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -1862,6 +1994,15 @@ class AssignNode extends ExpNode {
             p.print(")");
     }
 
+    public void codeGen() {
+        myExp.codeGen();
+        ((IdNode) myLhs).genAddr();
+        Codegen.genPop(Codegen.T0);
+        Codegen.genPop(Codegen.T1);
+        Codegen.generateIndexed("sw", Codegen.T1, Codegen.T0, 0, "Assign");
+        Codegen.genPush(Codegen.T1);
+    }
+
     // 2 kids
     private ExpNode myLhs;
     private ExpNode myExp;
@@ -1884,6 +2025,12 @@ class CallExpNode extends ExpNode {
      */
     public int lineNum() {
         return myId.lineNum();
+    }
+
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -1956,6 +2103,12 @@ abstract class UnaryExpNode extends ExpNode {
         return myExp.lineNum();
     }
 
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
+    }
+
     /**
      * Return the char number for this unary expression node. The char number is the
      * one corresponding to the operand.
@@ -1988,6 +2141,12 @@ abstract class BinaryExpNode extends ExpNode {
      */
     public int lineNum() {
         return myExp1.lineNum();
+    }
+
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -2040,6 +2199,12 @@ class UnaryMinusNode extends UnaryExpNode {
         return retType;
     }
 
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+        super.codeGen();
+    }
+
     public void unparse(PrintWriter p, int indent) {
         p.print("(-");
         myExp.unparse(p, 0);
@@ -2069,6 +2234,12 @@ class NotNode extends UnaryExpNode {
         }
 
         return retType;
+    }
+
+    @Override
+    public void codeGen() {
+        // TODO Auto-generated method stub
+        super.codeGen();
     }
 
     public void unparse(PrintWriter p, int indent) {
