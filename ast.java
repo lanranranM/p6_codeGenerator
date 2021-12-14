@@ -188,20 +188,35 @@ class DeclListNode extends ASTnode {
      * the list.
      */
     public void nameAnalysis(SymTable symTab, SymTable globalTab) {
-        //melody
-        int currOffset = 0;
+        Symb currSym = null;
+        int localOffset = 0;
         for (DeclNode node : myDecls) {
             if (node instanceof VarDeclNode) {
-                ((VarDeclNode) node).nameAnalysis(symTab, globalTab);
-                if (!Symb.isGlobal()){
-                    Symb currentSym = ((VarDeclNode) node).getSym();
-                    currentSym.setOffset(currOffset);
-                    currOffset-=4;
-                }
+                currSym = ((VarDeclNode) node).nameAnalysis(symTab, globalTab);
             } else {
-                node.nameAnalysis(symTab);
+                currSym = node.nameAnalysis(symTab);
             }
+            if(currSym!=null){
+                if (Symb.isGlobal()){ //global
+                    currSym.setOffset(1);
+                }else{
+                    currSym.setOffset(localOffset);
+                    localOffset-=4;
+                }
+                // System.out.println(currSym.toString()+": "+currSym.getOffset());
+                // if(!currSym.isGlobal())
+                //     System.out.println("is in func!");
+            }
+            // if(currSym!=null)
+            //     System.out.println("currSym "+currSym.toString());
+            //     if(!currSym.isGlobal())
+            //         System.out.println("is in func!");
+            // if(symTab!=null)
+            //     symTab.print();
+            // if(globalTab!=null)
+            //     globalTab.print();
         }
+        
     }
 
     /**
@@ -556,6 +571,7 @@ class FnDeclNode extends DeclNode {
         }
 
         else { // add function name to local symbol table
+            Symb.setGlobal(false);
             try {
                 sym = new FnSymb(myType.type(), myFormalsList.length());
                 symTab.addDecl(name, sym);
@@ -588,7 +604,7 @@ class FnDeclNode extends DeclNode {
             System.err.println("Unexpected EmptySymTableException " + " in FnDeclNode.nameAnalysis");
             System.exit(-1);
         }
-
+        Symb.setGlobal(true);
         return null;
     }
 

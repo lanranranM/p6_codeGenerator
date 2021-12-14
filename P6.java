@@ -100,6 +100,9 @@ public class P6 {
             outFile.flush();
             outFile.close();
         }
+        if (Codegen.p !=null){
+            Codegen.p.close();
+        }
     }
 
     /**

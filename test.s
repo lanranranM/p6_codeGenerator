@@ -14,3 +14,6 @@ __start:
 	move  $sp, $t0
 	li    $v0, 10
 	syscall
+	.data
+	.align 2
+_c: space 4

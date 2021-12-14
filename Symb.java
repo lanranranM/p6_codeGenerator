@@ -7,7 +7,7 @@ import java.util.*;
 public class Symb {
     private Type type;
     private int offset;
-    private static boolean global;
+    public static boolean global = true;
     
     public Symb(Type type) {
         this.type = type;
@@ -24,7 +24,7 @@ public class Symb {
     public int getOffset(){
         return offset;
     }
-    public void setOffset(int offset){  //>0 if global, <=0 for locals based on document
+    public void setOffset(int offset){  //1 if global, <=0 for locals based on document
         this.offset=offset;
     }
     static boolean isGlobal(){
@@ -53,6 +53,7 @@ class FnSymb extends Symb {
         super(new FnType());
         returnType = type;
         numParams = numparams;
+        global = false;
     }
 
     public void addFormals(List<Type> L) {
