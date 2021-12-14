@@ -6,7 +6,11 @@ int main() {
     d = fls;
     c = tru;
     a = 15;
-    print << c;
+    /// print << c;
+    print << a;
+    ++a;
+    print << a;
+
     if(1==1){
         print << "true in if block";
     }
@@ -15,9 +19,6 @@ int main() {
     }else{
         print << c;
         print << "true";
-    }
-    while(1==1){
-        print << "in loop";
     }
     receive >> a;
     print << "Hello";

@@ -421,7 +421,10 @@ class ExpListNode extends ASTnode {
             }
         }
     }
+    //melody todo
+    public void codeGen(){
 
+    }
     // list of kids (ExpNodes)
     private List<ExpNode> myExps;
 }
@@ -938,9 +941,17 @@ class AssignStmtNode extends StmtNode {
 
 class PreIncStmtNode extends StmtNode {
     @Override
+    //melody
     public void codeGen() {
         // TODO Auto-generated method stub
-
+        //evaluate
+        myExp.codeGen();
+        // pop values in t0,t1
+        Codegen.genPop(Codegen.T0);
+        // do the addition
+        Codegen.generate("add",Codegen.T0,Codegen.T0,1);
+        // push
+        Codegen.genPush(Codegen.T0);
     }
 
     public PreIncStmtNode(ExpNode exp) {
@@ -1438,10 +1449,11 @@ class RepeatStmtNode extends StmtNode {
 }
 
 class CallStmtNode extends StmtNode {
+    //MELODY
     @Override
     public void codeGen() {
-        // TODO Auto-generated method stub
-
+        myCall.codeGen();
+        Codegen.genPop(Codegen.T1); // remove trash from stack
     }
 
     public CallStmtNode(CallExpNode call) {
@@ -2077,8 +2089,12 @@ class CallExpNode extends ExpNode {
 
     @Override
     public void codeGen() {
-        // TODO Auto-generated method stub
-
+        //Evaluate each actual parameter, pushing the values onto the stack;
+        myExpList.codeGen();
+        //Jump and link (jump to the called function, leaving the return address in the RA register).
+        //myId.genJumpAndLink();  //todo
+        //Push the returned value (which will be in register V0 or F0 depending on the return type) onto the stack.
+        Codegen.genPush(Codegen.V0);
     }
 
     /**
