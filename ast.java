@@ -2488,6 +2488,17 @@ class EqualsNode extends EqualityExpNode {
         myExp2.unparse(p, 0);
         p.print(")");
     }
+
+    public void codeGen() {
+        myExp1.codeGen();
+        myExp2.codeGen();
+
+        Codegen.genPop(T1);
+        Codegen.genPop(T0);
+
+        Codegen.generate("and", Codegen.T0, Codegen.T0, Codegen.T1);
+        Codegen.genPush(Codegen.T0);
+    }
 }
 
 class NotEqualsNode extends EqualityExpNode {
