@@ -945,6 +945,7 @@ class PreIncStmtNode extends StmtNode {
     public void codeGen() {
         // TODO Auto-generated method stub
         //evaluate
+        Codegen.generateWithComment("", "in pre++");
         myExp.codeGen();
         // pop values in t0,t1
         Codegen.genPop(Codegen.T0);
@@ -952,6 +953,7 @@ class PreIncStmtNode extends StmtNode {
         Codegen.generate("add",Codegen.T0,Codegen.T0,1);
         // push
         Codegen.genPush(Codegen.T0);
+        Codegen.generateIndexed("sw",Codegen.T0, Codegen.FP, ((IdNode)myExp).sym().getOffset());
     }
 
     public PreIncStmtNode(ExpNode exp) {
@@ -988,9 +990,19 @@ class PreIncStmtNode extends StmtNode {
 
 class PreDecStmtNode extends StmtNode {
     @Override
+    //melody
     public void codeGen() {
         // TODO Auto-generated method stub
-
+        //evaluate
+        Codegen.generateWithComment("", "in pre++");
+        myExp.codeGen();
+        // pop values in t0,t1
+        Codegen.genPop(Codegen.T0);
+        // do the minus
+        Codegen.generate("sub",Codegen.T0,Codegen.T0,1);
+        // push
+        Codegen.genPush(Codegen.T0);
+        Codegen.generateIndexed("sw",Codegen.T0, Codegen.FP, ((IdNode)myExp).sym().getOffset());
     }
 
     public PreDecStmtNode(ExpNode exp) {
@@ -1144,7 +1156,7 @@ class PrintStmtNode extends StmtNode {
         }
         myExp.codeGen(); //TODO
         Codegen.genPop(Codegen.A0);
-        Codegen.generate("addu", Codegen.SP, Codegen.SP,4);
+        //Codegen.generate("addu", Codegen.SP, Codegen.SP,4);
         Codegen.generate("li", Codegen.V0, offsetV0);
         Codegen.generate("syscall");
     }
@@ -1692,7 +1704,8 @@ class TrueNode extends ExpNode {
     }
     //melody
     public void codeGen() {
-        Codegen.generate("li",Codegen.T0,Codegen.TRUE);
+        Codegen.generate("li", Codegen.T0, Codegen.TRUE);
+        Codegen.genPush(Codegen.T0);
     }
 
     private int myLineNum;
@@ -1732,7 +1745,8 @@ class FalseNode extends ExpNode {
 
     //melody
     public void codeGen() {
-        Codegen.generate("li",Codegen.T0,Codegen.FALSE);
+        Codegen.generate("li", Codegen.T0, Codegen.FALSE);
+        Codegen.genPush(Codegen.T0);
     }
 
     private int myLineNum;
@@ -2346,6 +2360,15 @@ abstract class ArithmeticExpNode extends BinaryExpNode {
 
         return retType;
     }
+    //melody
+    public void codeGenSetUp(){
+        //evaluate both operands
+        //pop in T0, T1
+        myExp1.codeGen();
+        myExp2.codeGen();
+        Codegen.genPop(Codegen.T0);
+        Codegen.genPop(Codegen.T1);
+    }
 }
 
 abstract class LogicalExpNode extends BinaryExpNode {
@@ -2468,6 +2491,12 @@ class PlusNode extends ArithmeticExpNode {
         myExp2.unparse(p, 0);
         p.print(")");
     }
+    //melody
+    public void codeGen(){
+        this.codeGenSetUp();
+        Codegen.generate("add",Codegen.T0,Codegen.T0,Codegen.T1);
+        Codegen.genPush(Codegen.T0);
+    }
 }
 
 class MinusNode extends ArithmeticExpNode {
@@ -2482,6 +2511,13 @@ class MinusNode extends ArithmeticExpNode {
         myExp2.unparse(p, 0);
         p.print(")");
     }
+    //melody
+    public void codeGen(){
+        this.codeGenSetUp();
+        Codegen.generate("sub",Codegen.T0,Codegen.T1,Codegen.T0);
+        Codegen.genPush(Codegen.T0);
+    }
+    
 }
 
 class TimesNode extends ArithmeticExpNode {
@@ -2496,6 +2532,12 @@ class TimesNode extends ArithmeticExpNode {
         myExp2.unparse(p, 0);
         p.print(")");
     }
+    //melody
+    public void codeGen(){
+        this.codeGenSetUp();
+        Codegen.generate("mul",Codegen.T0,Codegen.T0,Codegen.T1);
+        Codegen.genPush(Codegen.T0);
+    }
 }
 
 class DivideNode extends ArithmeticExpNode {
@@ -2509,6 +2551,12 @@ class DivideNode extends ArithmeticExpNode {
         p.print(" / ");
         myExp2.unparse(p, 0);
         p.print(")");
+    }
+    //melody
+    public void codeGen(){
+        this.codeGenSetUp();
+        Codegen.generate("div",Codegen.T0,Codegen.T0,Codegen.T1);
+        Codegen.genPush(Codegen.T0);
     }
 }
 
