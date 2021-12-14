@@ -323,7 +323,11 @@ class FnBodyNode extends ASTnode {
         myDeclList.unparse(p, indent);
         myStmtList.unparse(p, indent);
     }
-
+    //melody
+    public void CodeGen(){
+        myDeclList.codeGen();
+    }
+    //melody
     // 2 kids
     private DeclListNode myDeclList;
     private StmtListNode myStmtList;
@@ -358,7 +362,13 @@ class StmtListNode extends ASTnode {
             it.next().unparse(p, indent);
         }
     }
-
+    //melody
+    public void CodeGen(){
+        for(StmtNode node : myStmts){
+            //node.codeGen();
+        }
+    }
+    //melody
     // list of kids (StmtNodes)
     private List<StmtNode> myStmts;
 }
@@ -629,16 +639,31 @@ class FnDeclNode extends DeclNode {
 
     public void codeGen() {
         boolean isMain = myId.name().equals("main");
+        // preamble
         if (isMain){
             Codegen.generate(".text");
             Codegen.generate(".globl main");
-            Codegen.genLabel(myId.name());
+            Codegen.genLabel(myId.name(),"enter func");
             Codegen.genLabel("__start");
         }else{
             Codegen.generate(".text");
-            Codegen.genLabel(myId.name());
+            Codegen.genLabel(myId.name(),"enter func");
         }
-
+        // entry
+        Codegen.generateIndexed("sw", Codegen.RA, Codegen.FP, 0);
+        Codegen.generate("subu", Codegen.T0, Codegen.FP,4);
+        Codegen.generateIndexed("sw", Codegen.FP, Codegen.FP, 0);
+        Codegen.generate("subu", Codegen.SP, Codegen.T0,4);
+        Codegen.generate("addu", Codegen.FP, Codegen.SP,8);
+        Codegen.generateWithComment("", "Push space for the locals");
+        Codegen.generate("subu", Codegen.SP, Codegen.SP,((FnSymb)myId.sym()).getlocalVarOffset());
+        // body
+        //myBody.codeGen();
+        // exit
+        if(isMain)
+            Codegen.genLabel("_main_Exit");
+        else
+            Codegen.genLabel(Codegen.nextLabel());
         Codegen.generateIndexed("lw", Codegen.RA, Codegen.FP, 0);
         Codegen.generate("move", Codegen.T0, Codegen.FP);
         Codegen.generateIndexed("lw", Codegen.FP, Codegen.FP, -4);
