@@ -1,8 +1,12 @@
-int a;
-bool b;
 int main() {
     int a;
     int b;
-    int c;
+    a = 15;
+    receive >> a;
+    print << "Hello";
+    print << a;
 }
-int c;
+
+int test() {
+    int a;
+}
