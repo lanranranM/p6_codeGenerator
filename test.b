@@ -7,4 +7,5 @@ int main() {
     int a;
     a = test(10, 20);
     print << a;
+    ret 0;
 }

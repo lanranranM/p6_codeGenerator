@@ -317,8 +317,8 @@ class FnBodyNode extends ASTnode {
         myStmtList.unparse(p, indent);
     }
 
-    public void codeGen(){
-        myStmtList.codeGen();
+    public void codeGen(String retLabel){
+        myStmtList.codeGen(retLabel);
     }
 
     public int getLocalSize() {
@@ -363,9 +363,19 @@ class StmtListNode extends ASTnode {
 
 
     // melody
-    public void codeGen() {
+    public void codeGen(String retLabel) {
         for (StmtNode node : myStmts) {
-            node.codeGen();
+            if (node instanceof ReturnStmtNode) {
+                ((ReturnStmtNode)node).codeGen(retLabel);
+            } else if (node instanceof IfStmtNode) {
+                ((IfStmtNode)node).codeGen(retLabel);
+            } else if (node instanceof IfElseStmtNode) {
+                ((IfElseStmtNode)node).codeGen(retLabel);
+            } else if (node instanceof WhileStmtNode) {
+                ((WhileStmtNode)node).codeGen(retLabel);
+            } else {
+                node.codeGen();
+            }
         }
     }
 
@@ -676,14 +686,13 @@ class FnDeclNode extends DeclNode {
         Codegen.generateWithComment("", "Push space for the locals");
         Codegen.generate("subu", Codegen.SP, Codegen.SP, ((FnSymb) myId.sym()).getLocalSize());
 
+
         // body
-        myBody.codeGen();
+        String retLabel = isMain? "_main_Exit": Codegen.nextLabel();
+        myBody.codeGen(retLabel);
 
         // exit
-        if (isMain)
-            Codegen.genLabel("_main_Exit");
-        else
-            Codegen.genLabel(Codegen.nextLabel());
+        Codegen.genLabel(retLabel);
         Codegen.generateIndexed("lw", Codegen.RA, Codegen.FP, 0);
         Codegen.generate("move", Codegen.T0, Codegen.FP);
         Codegen.generateIndexed("lw", Codegen.FP, Codegen.FP, -4);
@@ -1228,16 +1237,18 @@ class IfStmtNode extends StmtNode {
         p.println("}");
     }
     //melody
-    public void codeGen(){
+    public void codeGen(String retLabel){
         Codegen.generateWithComment("", "in if");
         myExp.codeGen();// need to return the evulation result
         String _false = Codegen.nextLabel();
         Codegen.genPop(Codegen.T0);
         Codegen.generate("li", Codegen.T1, Codegen.FALSE);
         Codegen.generate("beq", Codegen.T0 , Codegen.T1, _false);
-        myStmtList.codeGen();
+        myStmtList.codeGen(retLabel);
         Codegen.genLabel(_false);
     }
+
+    public void codeGen() {}
     //
     // e kids
     private ExpNode myExp;
@@ -1315,7 +1326,7 @@ class IfElseStmtNode extends StmtNode {
         p.println("}");
     }
     //melody
-    public void codeGen(){
+    public void codeGen(String retLabel){
         Codegen.generateWithComment("", "in if else");
         myExp.codeGen();// need to return the evulation result
         String _false = Codegen.nextLabel();
@@ -1323,12 +1334,14 @@ class IfElseStmtNode extends StmtNode {
         Codegen.genPop(Codegen.T0);
         Codegen.generate("li", Codegen.T1, Codegen.FALSE);
         Codegen.generate("beq", Codegen.T0 , Codegen.T1, _false);
-        myThenStmtList.codeGen();
+        myThenStmtList.codeGen(retLabel);
         Codegen.generate("b",_outside);
         Codegen.genLabel(_false);
-        myElseStmtList.codeGen();
+        myElseStmtList.codeGen(retLabel);
         Codegen.genLabel(_outside);
     }
+
+    public void codeGen() {}
     //
     // 5 kids
     private ExpNode myExp;
@@ -1340,7 +1353,7 @@ class IfElseStmtNode extends StmtNode {
 
 class WhileStmtNode extends StmtNode {
     //melody
-    public void codeGen() {
+    public void codeGen(String retLabel) {
         //LoopLabel:
         String loopLabel = Codegen.nextLabel();
         String doneLabel = Codegen.nextLabel();
@@ -1352,13 +1365,15 @@ class WhileStmtNode extends StmtNode {
         Codegen.generate("li",Codegen.T1,Codegen.FALSE);
         Codegen.generate("beq",Codegen.T1,Codegen.T0,doneLabel);
         //Code for the statements in the body of the loop.
-        myStmtList.codeGen();
+        myStmtList.codeGen(retLabel);
         //Jump to LoopLabel
         Codegen.generate("b",loopLabel);
         //DoneLabel:
         Codegen.genLabel(doneLabel);
         
     }
+
+    public void codeGen(){};
 
     public WhileStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
         myExp = exp;
@@ -1557,18 +1572,16 @@ class ReturnStmtNode extends StmtNode {
         p.println(";");
     }
 
-    public void codeGen() {
+    public void codeGen(String retLabel) {
         // Return Val
         myExp.codeGen();
         Codegen.genPop(Codegen.V0);
 
         // Return
-        Codegen.generateIndexed("lw", Codegen.RA, Codegen.FP, 0);
-        Codegen.generate("move", Codegen.T0, Codegen.FP);
-        Codegen.generateIndexed("lw", Codegen.FP, Codegen.FP, -4);
-        Codegen.generate("move", Codegen.SP, Codegen.T0);
-        Codegen.generate("jr", Codegen.RA);
+        Codegen.generate("b", retLabel);
     }
+
+    public void codeGen() {}
 
     // 1 kid
     private ExpNode myExp; // possibly null

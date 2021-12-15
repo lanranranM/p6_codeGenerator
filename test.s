@@ -20,11 +20,7 @@ _test:		# enter func
 	subu  $sp, $sp, 4
 	lw    $v0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-	lw    $ra, 0($fp)
-	move  $t0, $fp
-	lw    $fp, -4($fp)
-	move  $sp, $t0
-	jr    $ra
+	b     .L0
 .L0:
 	lw    $ra, 0($fp)
 	move  $t0, $fp
@@ -70,6 +66,12 @@ __start:
 	addu  $sp, $sp, 4
 	li    $v0, 1
 	syscall
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $v0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	b     _main_Exit
 _main_Exit:
 	lw    $ra, 0($fp)
 	move  $t0, $fp
