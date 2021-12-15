@@ -1,6 +1,9 @@
+int global1;
+int global2;
+int global3;
 int test(int a, int b) {
-    print << a;
-    ret b;
+    ///print << a;
+    ret a+b;
 }
 
 int arithmetic(){
@@ -67,6 +70,20 @@ int main() {
     bool b;
     bool c;
     c = tru;
+    print << "test global";
+    print << "\n";
+    global1 = 1000;
+    global2 = 1000;
+    global3 = global1+global2;
+    print << global1;
+    print << " ";
+    print << global2;
+    print << " ";
+    print << global3;
+    print << " ";
+    a = test(global1,1);
+    print << a;
+    print << " ";
     print << "test arithmetic";
     print << "\n";
     arithmetic();
