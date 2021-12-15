@@ -59,6 +59,7 @@ int main() {
     bool b;
     a = test(10, 20);
     print << a;
+<<<<<<< HEAD
     print << "\n";
     print << "test arithmetic";
     print << "\n";
@@ -69,4 +70,7 @@ int main() {
     b = logic();
     print << b;
     print << "\n";
+=======
+    ret 0;
+>>>>>>> 78c5e6ad8030c5723e75e0efe0cc5090a6cbd6f2
 }
