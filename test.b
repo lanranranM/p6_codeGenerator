@@ -1,6 +1,8 @@
 int global1;
 int global2;
 int global3;
+int g1;
+bool b1;
 int test(int a, int b) {
     ///print << a;
     ret a+b;
@@ -64,6 +66,13 @@ int func1(int a){
     }
     func1(a);
 }
+void globalV() {
+    g1 = 1;
+    print << g1;
+    receive >> b1;
+    print << b1;
+    ret;
+}
 
 int main() {
     int a;
@@ -83,7 +92,7 @@ int main() {
     print << " ";
     a = test(global1,1);
     print << a;
-    print << " ";
+    print << "\n";
     print << "test arithmetic";
     print << "\n";
     arithmetic();
@@ -139,5 +148,7 @@ int main() {
     a = test(10, 20);
     print << a;
     print << "\n";
+
+    globalV();
     ret 0;
 }

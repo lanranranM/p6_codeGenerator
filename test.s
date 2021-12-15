@@ -1,4 +1,19 @@
 	jr    main
+	.data
+	.align 2
+_global1: .space 4
+	.data
+	.align 2
+_global2: .space 4
+	.data
+	.align 2
+_global3: .space 4
+	.data
+	.align 2
+_g1: .space 4
+	.data
+	.align 2
+_b1: .space 4
 	.text
 _test:		# enter func
 	sw    $ra, 0($sp)
@@ -11,11 +26,14 @@ _test:		# enter func
 	lw    $t0, 8($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 1
-	syscall
 	lw    $t0, 4($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	add   $t0, $t0, $t1
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $v0, 4($sp)	#POP
@@ -675,6 +693,61 @@ _func1:		# enter func
 	move  $sp, $t0
 	jr    $ra
 	.text
+_globalV:		# enter func
+	sw    $ra, 0($sp)
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+			#Push space for the locals
+	subu  $sp, $sp, 0
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, _g1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t1, 0($t0)	#Assign
+	sw    $t1, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, _g1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+	li    $v0, 5
+	syscall
+	la    $t0, _b1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $v0, 0($t0)
+	lw    $t0, _b1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+	lw    $v0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	b     .L16
+.L16:
+	lw    $ra, 0($fp)
+	move  $t0, $fp
+	lw    $fp, -4($fp)
+	move  $sp, $t0
+	jr    $ra
+	.text
 	.globl main
 main:		# enter func
 __start:
@@ -701,10 +774,10 @@ __start:
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	.data
-.L16:
-	.asciiz "test arithmetic"
+.L17:
+	.asciiz "test global"
 	.text
-	la    $t0, .L16
+	la    $t0, .L17
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -712,10 +785,180 @@ __start:
 	li    $v0, 4
 	syscall
 	.data
-.L17:
+.L18:
 	.asciiz "\n"
 	.text
-	la    $t0, .L17
+	la    $t0, .L18
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	li    $t0, 1000
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, _global1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t1, 0($t0)	#Assign
+	sw    $t1, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t0, 1000
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, _global2
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t1, 0($t0)	#Assign
+	sw    $t1, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, _global1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, _global2
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	add   $t0, $t0, $t1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, _global3
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t1, 0($t0)	#Assign
+	sw    $t1, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, _global1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+	.data
+.L19:
+	.asciiz " "
+	.text
+	la    $t0, .L19
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	lw    $t0, _global2
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+	.data
+.L20:
+	.asciiz " "
+	.text
+	la    $t0, .L20
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	lw    $t0, _global3
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+	.data
+.L21:
+	.asciiz " "
+	.text
+	la    $t0, .L21
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	lw    $t0, _global1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	li    $t0, 1
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	jal   _test
+	sw    $v0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	la    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t1, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	sw    $t1, 0($t0)	#Assign
+	sw    $t1, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	lw    $t0, -8($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 1
+	syscall
+	.data
+.L22:
+	.asciiz " "
+	.text
+	la    $t0, .L22
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	.data
+.L23:
+	.asciiz "test arithmetic"
+	.text
+	la    $t0, .L23
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	.data
+.L24:
+	.asciiz "\n"
+	.text
+	la    $t0, .L24
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -733,10 +976,10 @@ __start:
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	.data
-.L18:
+.L25:
 	.asciiz "test logic"
 	.text
-	la    $t0, .L18
+	la    $t0, .L25
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -744,10 +987,10 @@ __start:
 	li    $v0, 4
 	syscall
 	.data
-.L19:
+.L26:
 	.asciiz "\n"
 	.text
-	la    $t0, .L19
+	la    $t0, .L26
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -777,69 +1020,8 @@ __start:
 	li    $v0, 1
 	syscall
 	.data
-.L20:
-	.asciiz "\n"
-	.text
-	la    $t0, .L20
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-	.data
-.L21:
-	.asciiz "test controflow"
-	.text
-	la    $t0, .L21
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-	.data
-.L22:
-	.asciiz "\n"
-	.text
-	la    $t0, .L22
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-			#in if
-	lw    $t0, -16($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $t1, 0
-	beq   $t0, $t1, .L23
-	.data
-.L24:
-	.asciiz "should be print\n"
-	.text
-	la    $t0, .L24
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
-.L23:
-			#in if else
-	lw    $t0, -16($fp)
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $t1, 0
-	beq   $t0, $t1, .L25
-	.data
 .L27:
-	.asciiz "should be print\n"
+	.asciiz "\n"
 	.text
 	la    $t0, .L27
 	sw    $t0, 0($sp)	#PUSH
@@ -848,11 +1030,9 @@ __start:
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-	b     .L26
-.L25:
 	.data
 .L28:
-	.asciiz "should not be print\n"
+	.asciiz "test controflow"
 	.text
 	la    $t0, .L28
 	sw    $t0, 0($sp)	#PUSH
@@ -861,48 +1041,45 @@ __start:
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L26:
-			#in if
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $t1, 0
-	beq   $t0, $t1, .L29
 	.data
-.L30:
-	.asciiz "should not be print\n"
-	.text
-	la    $t0, .L30
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $a0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $v0, 4
-	syscall
 .L29:
-			#in if else
-	li    $t0, 0
-	sw    $t0, 0($sp)	#PUSH
-	subu  $sp, $sp, 4
-	lw    $t0, 4($sp)	#POP
-	addu  $sp, $sp, 4
-	li    $t1, 0
-	beq   $t0, $t1, .L31
-	.data
-.L33:
-	.asciiz "should not be print\n"
+	.asciiz "\n"
 	.text
-	la    $t0, .L33
+	la    $t0, .L29
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-	b     .L32
+			#in if
+	lw    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 0
+	beq   $t0, $t1, .L30
+	.data
 .L31:
+	.asciiz "should be print\n"
+	.text
+	la    $t0, .L31
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+.L30:
+			#in if else
+	lw    $t0, -16($fp)
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 0
+	beq   $t0, $t1, .L32
 	.data
 .L34:
 	.asciiz "should be print\n"
@@ -914,10 +1091,11 @@ __start:
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
+	b     .L33
 .L32:
 	.data
 .L35:
-	.asciiz "test controflow - string"
+	.asciiz "should not be print\n"
 	.text
 	la    $t0, .L35
 	sw    $t0, 0($sp)	#PUSH
@@ -926,11 +1104,76 @@ __start:
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
+.L33:
+			#in if
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 0
+	beq   $t0, $t1, .L36
 	.data
+.L37:
+	.asciiz "should not be print\n"
+	.text
+	la    $t0, .L37
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
 .L36:
+			#in if else
+	li    $t0, 0
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $t1, 0
+	beq   $t0, $t1, .L38
+	.data
+.L40:
+	.asciiz "should not be print\n"
+	.text
+	la    $t0, .L40
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	b     .L39
+.L38:
+	.data
+.L41:
+	.asciiz "should be print\n"
+	.text
+	la    $t0, .L41
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+.L39:
+	.data
+.L42:
+	.asciiz "test controflow - string"
+	.text
+	la    $t0, .L42
+	sw    $t0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($sp)	#POP
+	addu  $sp, $sp, 4
+	li    $v0, 4
+	syscall
+	.data
+.L43:
 	.asciiz "\n"
 	.text
-	la    $t0, .L36
+	la    $t0, .L43
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -960,10 +1203,10 @@ __start:
 	li    $v0, 1
 	syscall
 	.data
-.L37:
-	.asciiz "hhhhhhh\n"
+.L44:
+	.asciiz "\n"
 	.text
-	la    $t0, .L37
+	la    $t0, .L44
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1003,10 +1246,10 @@ __start:
 	li    $v0, 1
 	syscall
 	.data
-.L38:
+.L45:
 	.asciiz "\n"
 	.text
-	la    $t0, .L38
+	la    $t0, .L45
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1020,19 +1263,19 @@ __start:
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 0
-	beq   $t0, $t1, .L39
+	beq   $t0, $t1, .L46
 	.data
-.L40:
+.L47:
 	.asciiz "should be print\n"
 	.text
-	la    $t0, .L40
+	la    $t0, .L47
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
-.L39:
+.L46:
 	li    $t0, 3
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
@@ -1048,7 +1291,7 @@ __start:
 	subu  $sp, $sp, 4
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
-.L41:
+.L48:
 	lw    $t0, -8($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
@@ -1065,7 +1308,7 @@ __start:
 	lw    $t0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $t1, 0
-	beq   $t1, $t0, .L42
+	beq   $t1, $t0, .L49
 	lw    $t0, -8($fp)
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
@@ -1074,10 +1317,10 @@ __start:
 	li    $v0, 1
 	syscall
 	.data
-.L43:
+.L50:
 	.asciiz " "
 	.text
-	la    $t0, .L43
+	la    $t0, .L50
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1094,13 +1337,13 @@ __start:
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	sw    $t0, -8($fp)
-	b     .L41
-.L42:
+	b     .L48
+.L49:
 	.data
-.L44:
+.L51:
 	.asciiz "test relational"
 	.text
-	la    $t0, .L44
+	la    $t0, .L51
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1108,10 +1351,10 @@ __start:
 	li    $v0, 4
 	syscall
 	.data
-.L45:
+.L52:
 	.asciiz "\n"
 	.text
-	la    $t0, .L45
+	la    $t0, .L52
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1251,10 +1494,10 @@ __start:
 	li    $v0, 1
 	syscall
 	.data
-.L46:
+.L53:
 	.asciiz "\n"
 	.text
-	la    $t0, .L46
+	la    $t0, .L53
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1262,10 +1505,10 @@ __start:
 	li    $v0, 4
 	syscall
 	.data
-.L47:
+.L54:
 	.asciiz "test functions (recursion, call/ret)"
 	.text
-	la    $t0, .L47
+	la    $t0, .L54
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1273,10 +1516,10 @@ __start:
 	li    $v0, 4
 	syscall
 	.data
-.L48:
+.L55:
 	.asciiz "\n"
 	.text
-	la    $t0, .L48
+	la    $t0, .L55
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
@@ -1330,16 +1573,21 @@ __start:
 	li    $v0, 1
 	syscall
 	.data
-.L49:
+.L56:
 	.asciiz "\n"
 	.text
-	la    $t0, .L49
+	la    $t0, .L56
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
 	lw    $a0, 4($sp)	#POP
 	addu  $sp, $sp, 4
 	li    $v0, 4
 	syscall
+	jal   _globalV
+	sw    $v0, 0($sp)	#PUSH
+	subu  $sp, $sp, 4
+	lw    $t0, 4($sp)	#POP
+	addu  $sp, $sp, 4
 	li    $t0, 0
 	sw    $t0, 0($sp)	#PUSH
 	subu  $sp, $sp, 4
