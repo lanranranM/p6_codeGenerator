@@ -560,7 +560,7 @@ class VarDeclNode extends DeclNode {
         if (NOT_STRUCT == -1) {
             if (myId != null && mySymb.isGlobal()) {
                 Codegen.generate(".data");
-                String tmp = "_" + myId.name() + ": " + "space 4";
+                String tmp = "_" + myId.name() + ": " + ".space 4";
                 Codegen.generate(".align 2" + "\n" + tmp);
             }
         }
@@ -1578,7 +1578,8 @@ class ReturnStmtNode extends StmtNode {
 
     public void codeGen(String retLabel) {
         // Return Val
-        myExp.codeGen();
+        if (myExp != null)
+            myExp.codeGen();
         Codegen.genPop(Codegen.V0);
 
         // Return

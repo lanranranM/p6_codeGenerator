@@ -1,3 +1,14 @@
+int g1;
+bool b1;
+
+void globalV() {
+    g1 = 1;
+    print << g1;
+    receive >> b1;
+    print << b1;
+    ret;
+}
+
 int test(int a, int b) {
     print << a;
     ret b;
@@ -122,5 +133,7 @@ int main() {
     a = test(10, 20);
     print << a;
     print << "\n";
+
+    globalV();
     ret 0;
 }
