@@ -7,14 +7,12 @@ import java.util.*;
 public class Symb {
     private Type type;
     private int offset;
-    private int localSize;
     private boolean global;
     public static boolean statusGlobal = true;
 
     public Symb(Type type) {
         this.type = type;
         this.global = statusGlobal;
-        this.localSize = 0;
     }
 
     public Type getType() {
@@ -32,14 +30,6 @@ public class Symb {
 
     public void setOffset(int offset) { // 1 if global, <=0 for locals based on document
         this.offset = offset;
-    }
-
-    public int getLocalSize() {
-        return localSize;
-    }
-
-    public void setLocalSize(int size) {
-        this.localSize = size;
     }
 
     static boolean isStatusGlobal() {
@@ -66,14 +56,14 @@ class FnSymb extends Symb {
     private Type returnType;
     private int numParams;
     private List<Type> paramTypes;
-    private int paraOffset;
-    private int localVarOffset;
+    private List<Symb> paramSyms;
+    private int localSize;
 
     public FnSymb(Type type, int numparams) {
         super(new FnType());
         returnType = type;
         numParams = numparams;
-        statusGlobal = false;
+        localSize = 0;
     }
 
     public void addFormals(List<Type> L) {
@@ -108,23 +98,23 @@ class FnSymb extends Symb {
         return str;
     }
 
+    public int getLocalSize() {
+        return localSize;
+    }
+
+    public void setLocalSize(int size) {
+        this.localSize = size;
+    }
+
+    public void setParamSyms(List<Symb> L) {
+        this.paramSyms = L;
+    }
+
+    public List<Symb> getParamSyms() {
+        return paramSyms;
+    }
+
     // melody
-    public int getParaOffset() {
-        return paraOffset;
-    }
-
-    public void setParaOffset(int offset) {
-        this.paraOffset = offset;
-    }
-
-    public int getlocalVarOffset() {
-        return localVarOffset;
-    }
-
-    public void setlocalVarOffset(int offset) {
-        this.localVarOffset = offset;
-    }
-    //
 }
 
 /**

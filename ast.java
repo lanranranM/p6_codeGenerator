@@ -162,6 +162,7 @@ class ProgramNode extends ASTnode {
     }
 
     public void codeGen() {
+        Codegen.generate("jr", "main");
         myDeclList.codeGen();
     }
 
@@ -190,7 +191,7 @@ class DeclListNode extends ASTnode {
      */
     public void nameAnalysis(SymTable symTab, SymTable globalTab) {
         Symb currSym = null;
-        int localOffset = 0;
+        int localOffset = -8;
         for (DeclNode node : myDecls) {
             if (node instanceof VarDeclNode) {
                 currSym = ((VarDeclNode) node).nameAnalysis(symTab, globalTab);
@@ -246,6 +247,7 @@ class DeclListNode extends ASTnode {
 class FormalsListNode extends ASTnode {
     public FormalsListNode(List<FormalDeclNode> S) {
         myFormals = S;
+        mySyms = new LinkedList<Symb>();
     }
 
     /**
@@ -259,6 +261,7 @@ class FormalsListNode extends ASTnode {
             Symb sym = node.nameAnalysis(symTab);
             if (sym != null) {
                 typeList.add(sym.getType());
+                mySyms.add(sym);
             }
         }
         return typeList;
@@ -284,6 +287,7 @@ class FormalsListNode extends ASTnode {
 
     // list of kids (FormalDeclNodes)
     private List<FormalDeclNode> myFormals;
+    public List<Symb> mySyms;
 }
 
 class FnBodyNode extends ASTnode {
@@ -421,9 +425,6 @@ class ExpListNode extends ASTnode {
             }
         }
     }
-    //melody todo
-    public void codeGen(){
-
 
     public void codeGen() {
         for (ExpNode exp: myExps) {
@@ -614,6 +615,12 @@ class FnDeclNode extends DeclNode {
         List<Type> typeList = myFormalsList.nameAnalysis(symTab);
         if (sym != null) {
             sym.addFormals(typeList);
+            sym.setParamSyms(myFormalsList.mySyms);
+            int paramOffset = 4 * sym.getNumParams();
+            for (Symb symb: sym.getParamSyms()) {
+                symb.setOffset(paramOffset);
+                paramOffset -= 4;
+            }
         }
 
         myBody.nameAnalysis(symTab); // process the function body
@@ -1505,11 +1512,6 @@ class ReturnStmtNode extends StmtNode {
         myExp = exp;
     }
 
-    @Override
-    public void codeGen() {
-        // TODO Auto-generated method stub
-
-    }
 
     /**
      * nameAnalysis Given a symbol table symTab, perform name analysis on this
@@ -1553,6 +1555,19 @@ class ReturnStmtNode extends StmtNode {
             myExp.unparse(p, 0);
         }
         p.println(";");
+    }
+
+    public void codeGen() {
+        // Return Val
+        myExp.codeGen();
+        Codegen.genPop(Codegen.V0);
+
+        // Return
+        Codegen.generateIndexed("lw", Codegen.RA, Codegen.FP, 0);
+        Codegen.generate("move", Codegen.T0, Codegen.FP);
+        Codegen.generateIndexed("lw", Codegen.FP, Codegen.FP, -4);
+        Codegen.generate("move", Codegen.SP, Codegen.T0);
+        Codegen.generate("jr", Codegen.RA);
     }
 
     // 1 kid
