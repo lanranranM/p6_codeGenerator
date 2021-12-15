@@ -18,7 +18,7 @@ int main() {
     print << c;
     print << " ";
     ///print << a;
-    ++a1; ///unpass!
+    ++a1; 
     print << a1;
     print << " ";
     --a1;
